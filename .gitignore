@@ -34,3 +34,9 @@ build/
 *.sln
 *.sw?
 Thumbs.db
+# Coverage reports
+coverage/
+
+# Temporary files
+*.tmp
+*.bak
