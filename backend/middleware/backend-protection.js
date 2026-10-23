@@ -16,9 +16,17 @@ const authentication = (req, res, next) => {
         next()
     }
 }
-export default authentication
 
 //AUTHORIZATION 
-const authorization=(req,res,next)=>{
-    if(!req.user.role != )
+const authorization = (req, res, next) => {
+    if (!req.user.role !== "admin") {
+        return res.json({
+            message: "Access denied!"
+        })
+    }
+    else {
+        next()
+    }
+
 }
+export { authentication, authorization }
