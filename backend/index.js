@@ -1,15 +1,16 @@
+import "dotenv/config"
 import mongoose from "mongoose";
 import express from "express";
 import connectDB from "./config/config.js";
 import adminRoutes from "./routes/adminRoutes.js";
-
-import dotenv from "dotenv"
-dotenv.config()
+import userRoutes from "./routes/userRoutes.js"
 
 const app = express()
 
 app.use(express.json())
 app.use("/api/admin", adminRoutes)
+app.use("/api/vendor", userRoutes)
+app.use("/api/seller", userRoutes)
 
 
 
