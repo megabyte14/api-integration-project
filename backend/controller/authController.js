@@ -1,3 +1,4 @@
+
 import User from "../models/User.js"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -104,7 +105,13 @@ const vendorLogin = async (req, res) => {
 
     res.json({
         message: "Authenticated!",
-        token: token
+        token,
+        user: {
+            id: findUser._id,
+            name: findUser.name,
+            email: findUser.email,
+            role: findUser.role
+        }
     })
 }
 
@@ -149,7 +156,13 @@ const sellerLogin = async (req, res) => {
 
     res.json({
         message: "Authenticated!",
-        token: token
+        token,
+        user: {
+            id: findUser._id,
+            name: findUser.name,
+            email: findUser.email,
+            role: findUser.role
+        }
     })
 }
 
@@ -194,7 +207,13 @@ const adminLogin = async (req, res) => {
 
     res.json({
         message: "Admin logged in!",
-        token: token
+        token,
+        user: {
+            id: findUser._id,
+            name: findUser.name,
+            email: findUser.email,
+            role: findUser.role
+        }
     })
 }
 

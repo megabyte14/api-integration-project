@@ -1,3 +1,4 @@
+
 import express from "express"
 import { authentication, authorization } from "../middleware/backend-protection.js"
 import { sellerLogin,vendorLogin } from "../controller/authController.js"
@@ -5,7 +6,13 @@ import { sellerRegistration,vendorRegister } from "../controller/authController.
 
 const router=express.Router()
 
-router.get("/dashboard",authentication,authorization,(req,res)=>{
+router.get("/dashboard",authentication,(req,res)=>{
+    if (req.user.role !== "seller" && req.user.role !== "vendor") {
+        return res.status(403).json({
+            message:"Access denied!"
+        })
+    }
+
     res.json({
         message:"Welcome User!"
     })
