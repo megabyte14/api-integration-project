@@ -5,7 +5,7 @@ import connectDB from "./config/config.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js"
 import cors from "cors"
-
+import productRoutes from "./routes/productRoutes.js";
 
 const app = express()
 
@@ -15,7 +15,7 @@ app.use(express.json())
 app.use("/api/admin", adminRoutes)
 app.use("/api/vendor", userRoutes)
 app.use("/api/seller", userRoutes)
-
+app.use("/api/products", productRoutes);
 
 
 const PORT = process.env.PORT || 5000

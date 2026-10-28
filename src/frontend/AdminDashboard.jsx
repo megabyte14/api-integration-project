@@ -1,27 +1,83 @@
 
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken, getUser, logout } from "../utils/auth";
 import "./AdminDashboard.css";
 
-const stats = [
-  ["Total Products", "1,284", "+12 this month"],
-  ["Registered Vendors", "48", "Across all categories"],
-  ["Total Sellers", "126", "Active accounts"],
-  ["Low Stock Items", "18", "Needs attention"],
-];
-
-const products = [
-  ["Wireless Mouse", "Electronics", 12, "Low stock"],
-  ["USB-C Cable", "Accessories", 86, "In stock"],
-  ["Laptop Stand", "Office", 7, "Low stock"],
-  ["Keyboard", "Electronics", 43, "In stock"],
-];
-
 function AdminDashboard() {
   const navigate = useNavigate();
-
   const token = getToken();
   const user = getUser();
+
+  const [products, setProducts] = useState([]);
+  const [inventoryError, setInventoryError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const stats = [
+    ["Total Products", products.length, "Across all vendors"],
+    [
+      "Registered Vendors",
+      "—",
+      "Not connected yet",
+    ],
+    [
+      "Total Sellers",
+      "—",
+      "Not connected yet",
+    ],
+    [
+      "Low Stock Items",
+      products.filter((product) => product.stock < 10).length,
+      "Fewer than 10 units",
+    ],
+  ];
+
+  useEffect(() => {
+    if (!token || user?.role?.toLowerCase() !== "admin") {
+      logout();
+      navigate("/login", { replace: true });
+    }
+  }, [token, user, navigate]);
+
+  useEffect(() => {
+    if (!token || user?.role?.toLowerCase() !== "admin") {
+      return;
+    }
+
+    const fetchProducts = async () => {
+      setLoading(true);
+      setInventoryError("");
+
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/products",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Failed to load inventory"
+          );
+        }
+
+        setProducts(data);
+      } catch (error) {
+        setInventoryError(
+          error.message || "Could not connect to the server"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [token, user?.role]);
 
   const handleLogout = () => {
     logout();
@@ -29,7 +85,6 @@ function AdminDashboard() {
   };
 
   if (!token || user?.role?.toLowerCase() !== "admin") {
-    navigate("/login", { replace: true });
     return null;
   }
 
@@ -106,34 +161,60 @@ function AdminDashboard() {
               <span>{products.length} ITEMS</span>
             </div>
 
+            {inventoryError && (
+              <p role="alert">{inventoryError}</p>
+            )}
+
             <div className="admin-table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>Product</th>
-                    <th>Category</th>
+                    <th>Vendor</th>
+                    <th>Price</th>
                     <th>Stock</th>
                     <th>Status</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {products.map(([name, category, stock, status]) => (
-                    <tr key={name}>
-                      <td>{name}</td>
-                      <td>{category}</td>
-                      <td>{stock}</td>
-                      <td>
-                        <span
-                          className={`admin-status ${
-                            status === "Low stock" ? "low" : ""
-                          }`}
-                        >
-                          {status}
-                        </span>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="5">Loading inventory...</td>
+                    </tr>
+                  ) : products.length === 0 ? (
+                    <tr>
+                      <td colSpan="5">
+                        {inventoryError
+                          ? "Could not load products."
+                          : "No products found."}
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    products.map((product) => (
+                      <tr key={product._id}>
+                        <td>{product.name}</td>
+                        <td>
+                          {product.vendor?.name || "Unknown"}
+                        </td>
+                        <td>
+                          ₹{Number(product.price).toFixed(2)}
+                        </td>
+                        <td>{product.stock}</td>
+                        <td>
+                          <span
+                            className={`admin-status ${
+                              product.stock < 10 ? "low" : ""
+                            }`}
+                          >
+                            {product.stock < 10
+                              ? "Low stock"
+                              : "In stock"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -144,18 +225,12 @@ function AdminDashboard() {
 
             <ul className="admin-activity">
               <li>
-                New vendor account registered
-                <small>Just now</small>
+                Recent activity tracking
+                <small>Not connected yet</small>
               </li>
-
               <li>
-                Product inventory updated
-                <small>10 minutes ago</small>
-              </li>
-
-              <li>
-                Low stock alert generated
-                <small>Today</small>
+                Product inventory
+                <small>Loaded from MongoDB</small>
               </li>
             </ul>
           </section>
